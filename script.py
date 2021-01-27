@@ -41,7 +41,7 @@ def objectinfo(geonameid):
                                                                 res += f'{restemp[i]}: -<br>'
                                                 return res
                 else:
-                        return 'Среди цифр идентификатора буква.'
+                        return 'Среди цифр идентификатора буква или буквы.'
 
 
 @app.route('/page/<p>/<n>')
