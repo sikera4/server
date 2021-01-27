@@ -13,25 +13,35 @@ def hello_world():
 @app.route('/geonameid/<geonameid>')
 def objectinfo(geonameid):
         with open('RU.txt', mode='r') as data:
-                res = ''
-                for record in data:
-                        prsdstr = record.split('\t')
-                        if prsdstr[0] == geonameid:
-                                if prsdstr[6] == 'P':
-                                        for i in range(1, len(restemp)):
-                                                if prsdstr[i] != '':
-                                                        res += f'{restemp[i]}: {prsdstr[i]}<br>'
-                                                elif prsdstr[i] == '':
-                                                        res += f'{restemp[i]}: -<br>'
-                                        return res
-                                elif prsdstr[6] != 'P':
-                                        res += 'Это, конечно, не город =), но вот информация:<br>'
-                                        for i in range(1, len(restemp)):
-                                                if prsdstr[i] != '':
-                                                        res += f'{restemp[i]}: {prsdstr[i]}<br>'
-                                                elif prsdstr[i] == '':
-                                                        res += f'{restemp[i]}: -<br>'
-                                        return res
+                isdig = True
+                for char in geonameid:
+                        if char.isdigit() == True:
+                                isdig = True
+                        else:
+                                isdig = False
+                                break
+                if isdig == True:
+                        res = ''
+                        for record in data:
+                                prsdstr = record.split('\t')
+                                if prsdstr[0] == geonameid:
+                                        if prsdstr[6] == 'P':
+                                                for i in range(1, len(restemp)):
+                                                        if prsdstr[i] != '':
+                                                                res += f'{restemp[i]}: {prsdstr[i]}<br>'
+                                                        elif prsdstr[i] == '':
+                                                                res += f'{restemp[i]}: -<br>'
+                                                return res
+                                        elif prsdstr[6] != 'P':
+                                                res += 'Это, конечно, не город =), но вот информация:<br>'
+                                                for i in range(1, len(restemp)):
+                                                        if prsdstr[i] != '':
+                                                                res += f'{restemp[i]}: {prsdstr[i]}<br>'
+                                                        elif prsdstr[i] == '':
+                                                                res += f'{restemp[i]}: -<br>'
+                                                return res
+                else:
+                        return 'Среди цифр идентификатора буква.'
 
 
 @app.route('/page/<p>/<n>')
@@ -45,24 +55,27 @@ def page(p, n):
                                 cities.append(record.split('\t'))
                 nint = int(n)
                 pint = int(p)
-                pagenum = ceil(c / nint)
-                np = cities[(pint-1) * nint : ((pint-1) * nint) + nint]
-                res = ''
-                for i in np:
-                        recres = ''
-                        for r in range(len(restemp)):
-                                if i[r] != '':
-                                        if r < len(restemp) - 1:
-                                                recres += f'{restemp[r]}: {i[r]}, '
-                                        elif r == len(restemp) - 1:
-                                                recres += f'{restemp[r]}: {i[r]}<br>'
-                                elif i[r] == '':
-                                        if r < len(restemp) - 1:
-                                                recres += f'{restemp[r]}: -, '
-                                        elif r == len(restemp) - 1:
-                                                recres += f'{restemp[r]}: -<br>'
-                        res += recres
-                return res
+                if pint > 0 and nint > 0:
+                        pagenum = ceil(c / nint)
+                        np = cities[(pint-1) * nint : ((pint-1) * nint) + nint]
+                        res = ''
+                        for i in np:
+                                recres = ''
+                                for r in range(len(restemp)):
+                                        if i[r] != '':
+                                                if r < len(restemp) - 1:
+                                                        recres += f'{restemp[r]}: {i[r]}, '
+                                                elif r == len(restemp) - 1:
+                                                        recres += f'{restemp[r]}: {i[r]}<br>'
+                                        elif i[r] == '':
+                                                if r < len(restemp) - 1:
+                                                        recres += f'{restemp[r]}: -, '
+                                                elif r == len(restemp) - 1:
+                                                        recres += f'{restemp[r]}: -<br>'
+                                res += recres
+                        return res
+                elif pint <= 0 or nint <= 0:
+                        return 'Одно из или все из введенных значений некорректны (меньше или равны нулю).'
 
 @app.route('/cities/<frst>/<scnd>')
 def cities(frst,scnd):
@@ -77,7 +90,7 @@ def cities(frst,scnd):
         'С':'S','Т':'T','У':'U','Ф':'F','Х':'H','Ц':'Ts','Ч':'Ch','Ш':'Sh',
         'Щ':'Shch','Ъ':'','Ы':'y','Э':'E','Ю':'Yu','Я':'Ya',' ':' ',
         ',':'','?':'','~':'','!':'','@':'','#':'','$':'','%':'','^':'',
-        '&':'','*':'','(':'',')':'','-':'','=':'','+':'',':':'',';':'','<':'',
+        '&':'','*':'','(':'',')':'','-':'-','=':'','+':'',':':'',';':'','<':'',
         '>':'','\'':'','"':'','\\':'','/':'','№':'','[':'',']':'','{':'',
         '}':'','ґ':'','ї':'', 'є':'','Ґ':'g','Ї':'i','Є':'e', '—':'','ь':''}
         with open('RU.txt', mode='r') as data:
@@ -101,9 +114,11 @@ def cities(frst,scnd):
                         frst = frst.replace(key, slovar[key])
                         scnd = scnd.replace(key, slovar[key])
                 for city in altnames:
-                        if frstorig == city[3].split(',')[-1] or frst == city[3].split(',')[-1]:
+                        if (frstorig == city[3].split(',')[-1] or frst == city[3].split(',')[-1] 
+                        or frst == city[2].replace("'", "")):
                                 neededfrst.append(city)
-                        elif scndorig == city[3].split(',')[-1] or scnd == city[3].split(',')[-1]:
+                        elif (scndorig == city[3].split(',')[-1] or scnd == city[3].split(',')[-1] 
+                        or scnd == city[2].replace("'", "")):
                                 neededscnd.append(city)
                 for cit in noaltnames:
                         if frst == cit[2].replace("'", ""):
