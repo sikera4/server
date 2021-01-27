@@ -8,12 +8,7 @@ restemp = ['Geonameid', 'Name', 'Ascii name', 'Alternate names', 'Latitude', 'Lo
         'Admin3 code', 'Admin4 code', 'Population', 'Elevation', 'DEM', 'Timezone', 'Modification date']
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
-
-@app.route('/user/<username>')
-def show_user_profile(username):
-    # show the user profile for that user
-    return 'User {}'.format(username)
+    return 'Начальная страница, скрипт запущен =)'
 
 @app.route('/geonameid/<geonameid>')
 def objectinfo(geonameid):
